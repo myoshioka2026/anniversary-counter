@@ -107,3 +107,80 @@ function formatDateTime(date) {
   const min = String(date.getMinutes()).padStart(2, "0");
   return y + "/" + m + "/" + d + " " + h + ":" + min;
 }
+
+// その日の0:00を返す
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0);
+}
+
+// at の時点での、その単位の現在値（切り捨て）を返す
+function getUnitValue(unit, start, at) {
+  if (at < start) {
+    return 0; // 開始前は 0
+  }
+  if (unit === "year") {
+    return getYearMonthDay(start, at).years;
+  }
+  if (unit === "month") {
+    return getYearMonthDay(start, at).totalMonths;
+  }
+  const fixed = getFixedUnits(start, at);
+  if (unit === "week") {
+    return fixed.weeks;
+  }
+  if (unit === "day") {
+    return fixed.days;
+  }
+  if (unit === "hour") {
+    return fixed.hours;
+  }
+  return fixed.minutes; // "minute"
+}
+
+// ひとつの単位について、「お祝い」と「次のキリ」を調べる
+function checkUnit(unit, start, now) {
+  const todayStart = startOfDay(now);
+  const tomorrowStart = new Date(
+    todayStart.getFullYear(), todayStart.getMonth(), todayStart.getDate() + 1, 0, 0
+  );
+  const LIMIT = 100000000; // 無限ループを防ぐための上限
+
+  // ① 今日が記念の日時になるキリの良い数（お祝い）を全部集める
+  const celebrations = [];
+  let n = Math.max(getUnitValue(unit, start, todayStart), 1);
+  while (n < LIMIT) {
+    const t = reachTime(start, unit, n);
+    if (t >= tomorrowStart) {
+      break; // 明日以降になったので終わり
+    }
+    if (t >= todayStart && isKiri(n, unit)) {
+      celebrations.push({ n: n, time: t });
+    }
+    n = n + 1;
+  }
+
+  // ② 記念の日時が明日以降になる、一番近いキリの良い数（次のキリ）を探す
+  let next = null;
+  let m = Math.max(getUnitValue(unit, start, tomorrowStart), 1);
+  while (m < LIMIT) {
+    if (isKiri(m, unit)) {
+      const t = reachTime(start, unit, m);
+      if (t >= tomorrowStart) {
+        next = { n: m, time: t };
+        break;
+      }
+    }
+    m = m + 1;
+  }
+
+  return { unit: unit, celebrations: celebrations, next: next };
+}
+
+// 6つの単位をまとめて調べる（大きい単位から順）
+function checkAllUnits(start, now) {
+  const units = ["year", "month", "week", "day", "hour", "minute"];
+  return units.map(function (unit) {
+    return checkUnit(unit, start, now);
+  });
+}
+
