@@ -15,6 +15,22 @@ button.addEventListener("click", function () {
     return;
   }
 
-  // 読み取った値をそのまま表示する
-  result.textContent = "記念日：" + dateValue + " " + timeValue;
+  const start = makeStartDate(dateValue, timeValue);
+  const now = new Date(); // テストのときは、ここを書き換える（下の表を参照）
+
+  // 記念日が未来の日時のときは、計算しない
+  if (start > now) {
+    result.textContent = "記念日が未来の日時になっています";
+    return;
+  }
+
+  const units = getFixedUnits(start, now);
+
+  result.textContent =
+    "経過：" + units.days + "日（" +
+    units.weeks + "週、" +
+    units.hours + "時間、" +
+    units.minutes + "分）";
 });
+
+
