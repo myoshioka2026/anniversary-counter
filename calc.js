@@ -70,3 +70,40 @@ function isKiri(n, unit) {
 
   return false;
 }
+
+// 開始日時から n 単位たった日時（記念の日時）を求める
+// unit は "minute" "hour" "day" "week" "month" "year" のどれか
+function reachTime(start, unit, n) {
+  const base = start.getTime(); // 開始日時をミリ秒にしたもの
+
+  if (unit === "minute") {
+    return new Date(base + n * 60 * 1000);
+  }
+  if (unit === "hour") {
+    return new Date(base + n * 60 * 60 * 1000);
+  }
+  if (unit === "day") {
+    return new Date(base + n * 24 * 60 * 60 * 1000);
+  }
+  if (unit === "week") {
+    return new Date(base + n * 7 * 24 * 60 * 60 * 1000);
+  }
+  // カ月と年は、暦で数える（月末の丸めは addMonths がやってくれる）
+  if (unit === "month") {
+    return addMonths(start, n);
+  }
+  if (unit === "year") {
+    return addMonths(start, n * 12);
+  }
+  return null; // 知らない単位が来たとき
+}
+
+// 日時を「2026/11/08 15:00」の形の文字にする（確認用・表示用）
+function formatDateTime(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  const h = String(date.getHours()).padStart(2, "0");
+  const min = String(date.getMinutes()).padStart(2, "0");
+  return y + "/" + m + "/" + d + " " + h + ":" + min;
+}
