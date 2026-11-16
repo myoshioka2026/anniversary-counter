@@ -25,12 +25,11 @@ button.addEventListener("click", function () {
   }
 
   const units = getFixedUnits(start, now);
+  const ymd = getYearMonthDay(start, now);
 
   result.textContent =
-    "経過：" + units.days + "日（" +
-    units.weeks + "週、" +
-    units.hours + "時間、" +
-    units.minutes + "分）";
+    "経過：" + ymd.years + "年" + ymd.months + "カ月" + ymd.days + "日" +
+    "（現在値：" + ymd.years + "年、" + ymd.totalMonths + "カ月、" +
+    units.days + "日、" + units.weeks + "週、" +
+    units.hours + "時間、" + units.minutes + "分）";
 });
-
-
