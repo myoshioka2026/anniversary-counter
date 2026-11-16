@@ -39,3 +39,34 @@ function getYearMonthDay(start, now) {
   const days = Math.floor(rest / (1000 * 60 * 60 * 24));
   return { years: years, months: months, days: days, totalMonths: totalMonths };
 }
+
+// n が「キリの良い数」かどうかを判定する
+// unit は "minute" "hour" "day" "week" "month" "year" のどれか
+function isKiri(n, unit) {
+  // 正の整数だけが対象
+  if (!Number.isInteger(n) || n < 1) {
+    return false;
+  }
+
+  // 年とカ月だけは、1〜9もキリの良い数にする
+  if ((unit === "year" || unit === "month") && n <= 9) {
+    return true;
+  }
+
+  const text = String(n); // 数を文字にして、並びを調べる
+
+  // ① 1、または、先頭1桁のあとがすべて0（10、20、100、400、1000…）
+  if (n === 1) {
+    return true;
+  }
+  if (/^[1-9]0+$/.test(text)) {
+    return true;
+  }
+
+  // ② 2桁以上のぞろ目（11、22、111…）
+  if (/^([1-9])\1+$/.test(text)) {
+    return true;
+  }
+
+  return false;
+}
