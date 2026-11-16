@@ -184,3 +184,83 @@ function checkAllUnits(start, now) {
   });
 }
 
+const UNIT_ORDER = ["year", "month", "week", "day", "hour", "minute"];
+const UNIT_LABEL = {
+  year: "年", month: "カ月", week: "週", day: "日", hour: "時間", minute: "分"
+};
+
+// 今から target までの「あとどれだけか」を文字にする（上位2つの単位）
+function formatRemaining(now, target) {
+  const diff = target - now; // ミリ秒
+  const MIN = 60 * 1000;
+  const HOUR = 60 * MIN;
+  const DAY = 24 * HOUR;
+  const days = Math.floor(diff / DAY);
+  const hours = Math.floor((diff % DAY) / HOUR);
+  const minutes = Math.floor((diff % HOUR) / MIN);
+  if (days >= 1) {
+    return "あと" + days.toLocaleString() + "日" + hours + "時間";
+  }
+  if (hours >= 1) {
+    return "あと" + hours + "時間" + minutes + "分";
+  }
+  return "あと" + minutes + "分";
+}
+
+// 画面に出す内容（お祝い・次のキリ）をまとめる
+function buildView(start, now) {
+  const results = checkAllUnits(start, now);
+
+  // お祝い：全単位を集めて、大きい単位を優先（同じ単位なら数が大きい順）で最大3件
+  const all = [];
+  results.forEach(function (r) {
+    r.celebrations.forEach(function (c) {
+      all.push({ unit: r.unit, n: c.n, time: c.time });
+    });
+  });
+  all.sort(function (a, b) {
+    const ua = UNIT_ORDER.indexOf(a.unit);
+    const ub = UNIT_ORDER.indexOf(b.unit);
+    if (ua !== ub) {
+      return ua - ub;
+    }
+    return b.n - a.n;
+  });
+  const celebrations = all.slice(0, 3);
+  // 表示の順番は、大きい単位から、同じ単位なら数が小さい順にそろえる
+  celebrations.sort(function (a, b) {
+    const ua = UNIT_ORDER.indexOf(a.unit);
+    const ub = UNIT_ORDER.indexOf(b.unit);
+    if (ua !== ub) {
+      return ua - ub;
+    }
+    return a.n - b.n;
+  });
+
+  // 次のキリ：お祝いがない単位だけ
+  const nextList = [];
+  results.forEach(function (r) {
+    if (r.celebrations.length === 0 && r.next !== null) {
+      nextList.push({
+        unit: r.unit,
+        n: r.next.n,
+        time: r.next.time,
+        remaining: formatRemaining(now, r.next.time),
+        isNearest: false
+      });
+    }
+  });
+
+  // 一番近いものに印をつける（同じ時刻のものは全部）
+  if (nextList.length > 0) {
+    const minTime = Math.min.apply(null, nextList.map(function (x) {
+      return x.time.getTime();
+    }));
+    nextList.forEach(function (x) {
+      x.isNearest = (x.time.getTime() === minTime);
+    });
+  }
+
+  return { celebrations: celebrations, nextList: nextList };
+}
+
