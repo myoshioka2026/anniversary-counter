@@ -16,33 +16,43 @@
   </div>
 
   <main class="page">
-    <header class="hero">
-      <svg viewBox="0 0 220 110" aria-hidden="true">
-        <defs>
-          <path id="heart" d="M50 88 C20 62 5 45 5 28 C5 14 16 5 29 5 C38 5 46 10 50 18 C54 10 62 5 71 5 C84 5 95 14 95 28 C95 45 80 62 50 88 Z"/>
-        </defs>
-        <use href="#heart" transform="translate(20 8) scale(0.95) rotate(-12 50 50)" fill="#ff7aa8"/>
-        <use href="#heart" transform="translate(105 20) scale(0.7) rotate(14 50 50)" fill="#ffb3cc"/>
-        <use href="#heart" transform="translate(160 -2) scale(0.4) rotate(-8 50 50)" fill="#ffd1e0"/>
-      </svg>
-      <h1>記念日カウンター</h1>
-      <p class="subtitle">ふたりの時間を、数えよう</p>
-    </header>
+    <!-- 一覧画面 -->
+    <div id="list-view">
+      <header class="hero">
+        <svg viewBox="0 0 220 110" aria-hidden="true">
+          <defs>
+            <path id="heart" d="M50 88 C20 62 5 45 5 28 C5 14 16 5 29 5 C38 5 46 10 50 18 C54 10 62 5 71 5 C84 5 95 14 95 28 C95 45 80 62 50 88 Z"/>
+          </defs>
+          <use href="#heart" transform="translate(20 8) scale(0.95) rotate(-12 50 50)" fill="#ff7aa8"/>
+          <use href="#heart" transform="translate(105 20) scale(0.7) rotate(14 50 50)" fill="#ffb3cc"/>
+          <use href="#heart" transform="translate(160 -2) scale(0.4) rotate(-8 50 50)" fill="#ffd1e0"/>
+        </svg>
+        <h1>記念日カウンター</h1>
+        <p class="subtitle">ふたりの時間を、数えよう</p>
+      </header>
 
-    <!-- 追加のフォーム（普段は閉じている） -->
-    <details class="card add-card" id="add-details">
-      <summary>＋ 記念日を追加する</summary>
-      <div class="add-form">
-        <label>💌 名前（省略できます）<input type="text" id="new-name" maxlength="30" placeholder="例：付き合った日"></label>
-        <label>📅 記念日の日付<input type="date" id="new-date"></label>
-        <label>⏰ 開始時刻<input type="time" id="new-time"></label>
-        <button id="add-button">💖 追加する</button>
-        <p class="message" id="add-message"></p>
-      </div>
-    </details>
+      <!-- 追加のフォーム（普段は閉じている） -->
+      <details class="card add-card" id="add-details">
+        <summary>＋ 記念日を追加する</summary>
+        <div class="add-form">
+          <label>💌 名前（省略できます）<input type="text" id="new-name" maxlength="30" placeholder="例：付き合った日"></label>
+          <label>📅 記念日の日付<input type="date" id="new-date"></label>
+          <label>⏰ 開始時刻<input type="time" id="new-time"></label>
+          <button id="add-button">💖 追加する</button>
+          <p class="message" id="add-message"></p>
+        </div>
+      </details>
 
-    <!-- 記念日の一覧 -->
-    <div id="list"></div>
+      <!-- 記念日の一覧 -->
+      <div id="list"></div>
+    </div>
+
+    <!-- 詳細画面（最初は隠れている） -->
+    <div id="detail-view" hidden>
+      <a class="back" href="#list">← 一覧にもどる</a>
+      <div class="detail-name" id="detail-name"></div>
+      <div id="detail"></div>
+    </div>
   </main>
 
   <script src="calc.js"></script>

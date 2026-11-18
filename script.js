@@ -1,4 +1,8 @@
 // HTMLの部品を取り出す
+const listView = document.getElementById("list-view");
+const detailView = document.getElementById("detail-view");
+const detailName = document.getElementById("detail-name");
+const detailArea = document.getElementById("detail");
 const addDetails = document.getElementById("add-details");
 const nameInput = document.getElementById("new-name");
 const dateInput = document.getElementById("new-date");
@@ -17,10 +21,12 @@ function escapeHtml(text) {
     .replace(/'/g, "&#39;");
 }
 
-// 記念日1件ぶんの、一覧のカードをつくる
+// ---------- 一覧画面 ----------
+
+// 記念日1件ぶんの、一覧のカードをつくる（押すと詳細に移るリンク）
 function buildItemHtml(a, now) {
   const start = makeStartDate(a.date, a.time);
-  let html = '<div class="item" data-id="' + escapeHtml(a.id) + '">';
+  let html = '<a class="item" href="#a-' + escapeHtml(a.id) + '">';
   html += '<div class="item-name">💕 ' + escapeHtml(a.name) + "</div>";
 
   if (start > now) {
@@ -50,7 +56,7 @@ function buildItemHtml(a, now) {
     }
   }
 
-  html += "</div>";
+  html += "</a>";
   return html;
 }
 
@@ -69,6 +75,91 @@ function renderList() {
   });
   listArea.innerHTML = html;
 }
+
+// ---------- 詳細画面 ----------
+
+// 詳細画面の中身（経過・現在値・お祝い・次のキリ）をつくる
+function buildDetailHtml(a, now) {
+  const start = makeStartDate(a.date, a.time);
+
+  if (start > now) {
+    return "<p>まだ先の記念日です</p>";
+  }
+
+  const units = getFixedUnits(start, now);
+  const ymd = getYearMonthDay(start, now);
+  const view = buildView(start, now);
+
+  let html = "";
+  html += "<p>経過：" + ymd.years + "年" + ymd.months + "カ月" + ymd.days + "日</p>";
+  html += "<p>現在値：" + ymd.years + "年、" + ymd.totalMonths + "カ月、" +
+    units.days + "日、" + units.weeks + "週、" +
+    units.hours + "時間、" + units.minutes + "分</p>";
+
+  // お祝い
+  if (view.celebrations.length > 0) {
+    html += "<h2>💖 お祝い</h2><ul>";
+    view.celebrations.forEach(function (c) {
+      html += '<li class="celebrate">' + c.n.toLocaleString() + UNIT_LABEL[c.unit] +
+        "（" + formatDateTime(c.time) + "）</li>";
+    });
+    html += "</ul>";
+  }
+
+  // 次のキリ（一番近いものを強調し、あとどれだけかも出す）
+  if (view.nextList.length > 0) {
+    html += "<h2>🌸 次のキリ</h2><ul>";
+    view.nextList.forEach(function (x) {
+      const cls = x.isNearest ? ' class="nearest"' : "";
+      const mark = x.isNearest ? "💗 " : "";
+      html += "<li" + cls + ">" + mark + x.n.toLocaleString() + UNIT_LABEL[x.unit] +
+        "（" + formatDateTime(x.time) + "） " + x.remaining + "</li>";
+    });
+    html += "</ul>";
+  }
+
+  return html;
+}
+
+// ---------- 画面の切り替え ----------
+
+// 一覧画面を出す
+function showList() {
+  detailView.hidden = true;
+  listView.hidden = false;
+  renderList();
+}
+
+// 詳細画面を出す
+function showDetail(a) {
+  const start = makeStartDate(a.date, a.time);
+  const now = new Date();
+  detailName.innerHTML =
+    '<div class="detail-title">💕 ' + escapeHtml(a.name) + "</div>" +
+    '<div class="detail-sub">' + formatDateTime(start) + " から</div>";
+  detailArea.innerHTML = buildDetailHtml(a, now);
+  listView.hidden = true;
+  detailView.hidden = false;
+  window.scrollTo(0, 0);
+}
+
+// URLの # を見て、出す画面を決める（#a-id なら詳細、それ以外は一覧）
+function route() {
+  const hash = location.hash; // 例："#a-1700000000000-123456"
+  if (hash.indexOf("#a-") === 0) {
+    const id = hash.slice(3);
+    const found = getAnniversaries().filter(function (a) {
+      return a.id === id;
+    })[0];
+    if (found) {
+      showDetail(found);
+      return;
+    }
+  }
+  showList();
+}
+
+// ---------- 追加 ----------
 
 // 「追加する」ボタンが押されたとき
 addButton.addEventListener("click", function () {
@@ -102,6 +193,11 @@ addButton.addEventListener("click", function () {
   renderList();
 });
 
-// ページを開いたとき：前の保存を引き継いで、一覧を出す
+// ---------- 開いたとき ----------
+
+// URLの # が変わったら（カードを押す、戻るなど）、画面を切り替える
+window.addEventListener("hashchange", route);
+
+// 前の保存を引き継いで、最初の画面を出す
 migrateOldData();
-renderList();
+route();
