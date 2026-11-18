@@ -71,7 +71,7 @@ function showResult() {
 
   // お祝い
   if (view.celebrations.length > 0) {
-    html += "<h2>🎉 お祝い</h2><ul>";
+    html += "<h2>💖 お祝い</h2><ul>";
     view.celebrations.forEach(function (c) {
       html += '<li class="celebrate">' + c.n.toLocaleString() + UNIT_LABEL[c.unit] +
         "（" + formatDateTime(c.time) + "）</li>";
@@ -81,10 +81,10 @@ function showResult() {
 
   // 次のキリ（一番近いものを強調し、あとどれだけかも出す）
   if (view.nextList.length > 0) {
-    html += "<h2>次のキリ</h2><ul>";
+    html += "<h2>🌸 次のキリ</h2><ul>";
     view.nextList.forEach(function (x) {
       const cls = x.isNearest ? ' class="nearest"' : "";
-      const mark = x.isNearest ? "★ " : "";
+      const mark = x.isNearest ? "💗 " : "";
       html += "<li" + cls + ">" + mark + x.n.toLocaleString() + UNIT_LABEL[x.unit] +
         "（" + formatDateTime(x.time) + "） " + x.remaining + "</li>";
     });
