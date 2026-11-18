@@ -75,7 +75,8 @@ label {
 }
 
 input[type="date"],
-input[type="time"] {
+input[type="time"],
+input[type="text"] {
   display: block;
   width: 100%;
   margin-top: 6px;
@@ -253,4 +254,93 @@ h2::after {
   .hero svg,
   #result .celebrate { animation: none; }
   .floaters { display: none; }
+}
+
+/* 追加フォーム */
+.add-card {
+  display: block;
+  padding: 0;
+}
+
+.add-card summary {
+  padding: 14px 20px;
+  font-weight: 700;
+  color: var(--pink-600);
+  cursor: pointer;
+  list-style: none; /* 標準の三角マークを消す */
+}
+
+.add-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.add-form {
+  display: grid;
+  gap: 16px;
+  padding: 0 20px 20px;
+}
+
+.message {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 0.9rem;
+  color: var(--pink-600);
+}
+
+/* 一覧 */
+#list {
+  margin-top: 20px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.item {
+  position: relative;
+  margin: 0 0 14px;
+  padding: 14px 40px 14px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--pink-200);
+  border-radius: 20px;
+  box-shadow: 0 6px 16px rgba(214, 51, 108, 0.1);
+}
+
+.item::after {
+  content: "›";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.6rem;
+  color: var(--pink-400);
+}
+
+.item-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--pink-600);
+  overflow-wrap: anywhere;
+}
+
+.item-elapsed {
+  font-size: 1.05rem;
+}
+
+.item-celebrate {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 10px;
+  font-weight: 700;
+  color: #b8336a;
+  background: linear-gradient(135deg, #fff6d6, #ffe0ec);
+  border-radius: 12px;
+}
+
+.item-next {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
 }

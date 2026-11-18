@@ -1,106 +1,107 @@
 // HTMLの部品を取り出す
-const dateInput = document.getElementById("start-date");
-const timeInput = document.getElementById("start-time");
-const button = document.getElementById("calc-button");
-const result = document.getElementById("result");
+const addDetails = document.getElementById("add-details");
+const nameInput = document.getElementById("new-name");
+const dateInput = document.getElementById("new-date");
+const timeInput = document.getElementById("new-time");
+const addButton = document.getElementById("add-button");
+const addMessage = document.getElementById("add-message");
+const listArea = document.getElementById("list");
 
-// 保存に使う名前
-const STORAGE_KEY = "anniversary";
-
-// 保存した記念日を読み出す（なければ null）
-function loadAnniversary() {
-  try {
-    const text = localStorage.getItem(STORAGE_KEY);
-    if (text === null) {
-      return null;
-    }
-    const data = JSON.parse(text);
-    if (typeof data.date === "string" && typeof data.time === "string") {
-      return data;
-    }
-    return null;
-  } catch (e) {
-    return null; // 読めなかったときは、保存なしとして扱う
-  }
+// HTMLに入れる文字を安全にする（< や & などを、ただの文字として表示させる）
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-// 記念日を保存する
-function saveAnniversary(dateValue, timeValue) {
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ date: dateValue, time: timeValue })
-    );
-  } catch (e) {
-    // 保存できなくても、計算と表示は続ける
+// 記念日1件ぶんの、一覧のカードをつくる
+function buildItemHtml(a, now) {
+  const start = makeStartDate(a.date, a.time);
+  let html = '<div class="item" data-id="' + escapeHtml(a.id) + '">';
+  html += '<div class="item-name">💕 ' + escapeHtml(a.name) + "</div>";
+
+  if (start > now) {
+    html += '<div class="item-next">まだ先の記念日です（' + formatDateTime(start) + "から）</div>";
+  } else {
+    const ymd = getYearMonthDay(start, now);
+    const view = buildView(start, now);
+
+    html += '<div class="item-elapsed">' +
+      ymd.years + "年" + ymd.months + "カ月" + ymd.days + "日</div>";
+
+    // 今日がお祝いの日なら、目立つ表示を出す
+    if (view.celebrations.length > 0) {
+      const names = view.celebrations.map(function (c) {
+        return c.n.toLocaleString() + UNIT_LABEL[c.unit];
+      }).join("・");
+      html += '<div class="item-celebrate">🎉 今日はお祝い！（' + names + "）</div>";
+    }
+
+    // 一番近い次のキリを、1つだけ出す
+    const nearest = view.nextList.filter(function (x) {
+      return x.isNearest;
+    })[0];
+    if (nearest) {
+      html += '<div class="item-next">次：' + nearest.n.toLocaleString() +
+        UNIT_LABEL[nearest.unit] + "まで　" + nearest.remaining + "</div>";
+    }
   }
+
+  html += "</div>";
+  return html;
 }
 
-// 入力欄の値から、結果を計算して画面に出す
-function showResult() {
-  const dateValue = dateInput.value; // 例："2025-10-04"
-  const timeValue = timeInput.value; // 例："15:00"
+// 一覧を描き直す
+function renderList() {
+  const list = getAnniversaries();
+  if (list.length === 0) {
+    listArea.innerHTML =
+      '<p class="empty">まだ記念日がありません。上の「＋ 記念日を追加する」から、はじめましょう 💕</p>';
+    return;
+  }
+  const now = new Date();
+  let html = "";
+  list.forEach(function (a) {
+    html += buildItemHtml(a, now);
+  });
+  listArea.innerHTML = html;
+}
+
+// 「追加する」ボタンが押されたとき
+addButton.addEventListener("click", function () {
+  const dateValue = dateInput.value;
+  const timeValue = timeInput.value;
 
   // どちらかが空なら、メッセージを出して終了
   if (dateValue === "" || timeValue === "") {
-    result.textContent = "日付と時刻を入力してください";
+    addMessage.textContent = "日付と時刻を入力してください";
     return;
   }
 
-  const start = makeStartDate(dateValue, timeValue);
-  const now = new Date(); // テストのときは、ここを書き換える
-
-  // 記念日が未来の日時のときは、計算も保存もしない
-  if (start > now) {
-    result.textContent = "記念日が未来の日時になっています";
+  // 記念日が未来の日時のときは、追加しない
+  if (makeStartDate(dateValue, timeValue) > new Date()) {
+    addMessage.textContent = "記念日が未来の日時になっています";
     return;
   }
 
-  // 正しい入力だったので、保存する
-  saveAnniversary(dateValue, timeValue);
-
-  const units = getFixedUnits(start, now);
-  const ymd = getYearMonthDay(start, now);
-  const view = buildView(start, now);
-
-  let html = "";
-  html += "<p>経過：" + ymd.years + "年" + ymd.months + "カ月" + ymd.days + "日</p>";
-  html += "<p>現在値：" + ymd.years + "年、" + ymd.totalMonths + "カ月、" +
-    units.days + "日、" + units.weeks + "週、" +
-    units.hours + "時間、" + units.minutes + "分</p>";
-
-  // お祝い
-  if (view.celebrations.length > 0) {
-    html += "<h2>💖 お祝い</h2><ul>";
-    view.celebrations.forEach(function (c) {
-      html += '<li class="celebrate">' + c.n.toLocaleString() + UNIT_LABEL[c.unit] +
-        "（" + formatDateTime(c.time) + "）</li>";
-    });
-    html += "</ul>";
+  const item = addAnniversary(nameInput.value, dateValue, timeValue);
+  if (item === null) {
+    addMessage.textContent = "登録できるのは最大" + MAX_ANNIVERSARIES + "件までです";
+    return;
   }
 
-  // 次のキリ（一番近いものを強調し、あとどれだけかも出す）
-  if (view.nextList.length > 0) {
-    html += "<h2>🌸 次のキリ</h2><ul>";
-    view.nextList.forEach(function (x) {
-      const cls = x.isNearest ? ' class="nearest"' : "";
-      const mark = x.isNearest ? "💗 " : "";
-      html += "<li" + cls + ">" + mark + x.n.toLocaleString() + UNIT_LABEL[x.unit] +
-        "（" + formatDateTime(x.time) + "） " + x.remaining + "</li>";
-    });
-    html += "</ul>";
-  }
+  // 入力欄を空に戻して、フォームを閉じ、一覧を描き直す
+  nameInput.value = "";
+  dateInput.value = "";
+  timeInput.value = "";
+  addMessage.textContent = "";
+  addDetails.open = false;
+  renderList();
+});
 
-  result.innerHTML = html;
-}
-
-// ボタンが押されたら、計算して表示する
-button.addEventListener("click", showResult);
-
-// ページを開いたとき、保存した記念日があれば、入力欄に戻して自動で表示する
-const saved = loadAnniversary();
-if (saved !== null) {
-  dateInput.value = saved.date;
-  timeInput.value = saved.time;
-  showResult();
-}
+// ページを開いたとき：前の保存を引き継いで、一覧を出す
+migrateOldData();
+renderList();
