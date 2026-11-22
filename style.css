@@ -386,3 +386,19 @@ a.item:active {
   font-size: 0.9rem;
   color: var(--text-soft);
 }
+
+/* 削除ボタン */
+button.danger {
+  margin-top: 24px;
+  padding: 12px;
+  color: #b42356;
+  background: transparent;
+  border: 2px solid #e58aa9;
+  box-shadow: none;
+}
+
+button.danger:active {
+  transform: none;
+  background: var(--pink-100);
+  box-shadow: none;
+}

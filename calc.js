@@ -48,8 +48,13 @@ function isKiri(n, unit) {
     return false;
   }
 
-  // 年とカ月だけは、1〜9もキリの良い数にする
-  if ((unit === "year" || unit === "month") && n <= 9) {
+  // 年は、1年ごと（毎年）すべてキリの良い数にする
+  if (unit === "year") {
+    return true;
+  }
+
+  // カ月は、1〜9もキリの良い数にする
+  if (unit === "month" && n <= 9) {
     return true;
   }
 

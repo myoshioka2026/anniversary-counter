@@ -10,6 +10,10 @@ const timeInput = document.getElementById("new-time");
 const addButton = document.getElementById("add-button");
 const addMessage = document.getElementById("add-message");
 const listArea = document.getElementById("list");
+const deleteButton = document.getElementById("delete-button");
+
+// いま詳細画面に出している記念日（削除のときに使う）
+let currentItem = null;
 
 // HTMLに入れる文字を安全にする（< や & などを、ただの文字として表示させる）
 function escapeHtml(text) {
@@ -132,6 +136,7 @@ function showList() {
 
 // 詳細画面を出す
 function showDetail(a) {
+  currentItem = a;
   const start = makeStartDate(a.date, a.time);
   const now = new Date();
   detailName.innerHTML =
@@ -191,6 +196,22 @@ addButton.addEventListener("click", function () {
   addMessage.textContent = "";
   addDetails.open = false;
   renderList();
+});
+
+// ---------- 削除 ----------
+
+// 「削除する」ボタンが押されたとき
+deleteButton.addEventListener("click", function () {
+  if (currentItem === null) {
+    return;
+  }
+  const ok = confirm("「" + currentItem.name + "」を削除しますか？\nこの操作は元に戻せません。");
+  if (!ok) {
+    return;
+  }
+  removeAnniversary(currentItem.id);
+  currentItem = null;
+  location.hash = "list"; // 一覧に戻る（#が変わるので、画面が自動で切り替わる）
 });
 
 // ---------- 開いたとき ----------
